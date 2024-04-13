@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { Board, BoardStatus } from './board.model';
 
 import { v1 as uuid } from 'uuid'; //v1-> uuid의 version1 사용한다는 뜻
@@ -43,7 +43,15 @@ export class BoardsService {
     //getboard
     getBoardById(id: string): Board {
         //find -> 배열에서 id에 맞는 board 탐색
-        return this.boards.find((board) => board.id === id)
+        // return this.boards.find((board) => board.id === id); //id가 잘못될 경우를 예외처리해주자.
+
+        const found = this.boards.find(board => board.id === id);
+
+        if (!found) {
+            throw new NotFoundException(`Can't found Board with id ${id}`);
+        }
+
+        return found;
     }
 
 
@@ -51,7 +59,11 @@ export class BoardsService {
     deleteBoard(id: string): void {
         //삭제니까 return 안해도 됨 (= 반환값도 void)
         //filter를 사용해서 삭제 조건에 맞는 건 필터링에 걸리게 함.
-        this.boards = this.boards.filter((board) => board.id !== id);
+        // this.boards = this.boards.filter((board) => board.id !== id); //예외처리 필요
+
+        const found = this.getBoardById(id); //예외 발생 시 여기서 return throwexception이 될것.
+
+        this.boards = this.boards.filter(board => board.id !== found.id);
     }
 
 
@@ -59,6 +71,16 @@ export class BoardsService {
     updateBoardStatus(id: string, status: BoardStatus): Board {
         const board = this.getBoardById(id);
         board.status = status;
+
+        // if (!board) {
+        //     throw new NotFoundException('board is not found')
+        // }
+
+        // if (!board.status) {
+        //     throw new NotFoundException('status is strange');
+        // }
+
+    
         return board;
     }
 }
