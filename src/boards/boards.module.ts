@@ -3,12 +3,18 @@ import { BoardsController } from './boards.controller';
 import { BoardsService } from './boards.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { BoardRepository } from './board.repository';
+import { TypeOrmExModule } from '../custom-repository/typeorm-ex.module';
+import { AuthModule } from 'src/auth/auth.module';
+
 
 @Module({
-  imports: [ //repository 추가
-    TypeOrmModule.forFeature([BoardRepository])
+  imports: [
+    // TypeOrmModule.forFeature([BoardRepository]),
+    TypeOrmExModule.forCustomRepository([BoardRepository]),
+    AuthModule,
   ],
   controllers: [BoardsController],
-  providers: [BoardsService]
+  providers: [BoardsService],
 })
-export class BoardsModule {}
+
+export class BoardsModule { } 

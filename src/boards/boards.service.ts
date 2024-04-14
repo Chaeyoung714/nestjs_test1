@@ -1,13 +1,61 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { Board, BoardStatus } from './board.model';
+import { BoardStatus } from './board-status.enum';
 
 import { v1 as uuid } from 'uuid'; //v1-> uuid의 version1 사용한다는 뜻
 import { CreateBoardDto } from './dto/create-board.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { BoardRepository } from './board.repository';
+import { Board } from './board.entity';
 
 @Injectable()
 export class BoardsService {
-    //db를 안 써서 배열 사용..
-    private boards: Board[] = []; //다른 컴포넌트에서 배열 값 수정할 수 없게.
+    // service에서도 boardRepository를 주입!!
+    constructor (
+        // @InjectRepository(BoardRepository) //customrepository로 인해 이제 필요없어짐.
+        private boardRepository: BoardRepository,
+        //생성자 인자에 private -> 인자가 property로 선언됨
+    ) {}
+
+    async getBoardById(id: number): Promise<Board> {
+        const found = await this.boardRepository.findOne({ where: { id } }); //id 찾을 수 없음 -> 수정!
+
+        if (!found) {
+            throw new NotFoundException(`Can't find Board with id ${id}`);   
+        }
+
+        return found;
+    } 
+
+    createBoard(createBoardDto: CreateBoardDto): Promise<Board> {
+        return this.boardRepository.createBoard(createBoardDto);
+    }
+
+    async deleteBoard(id: number): Promise<void> {
+        const result = await this.boardRepository.delete(id);
+
+
+        if (result.affected === 0) { //result : DeleteResult { raw: [], affected: 0 }
+            throw new NotFoundException(`Can't find Board with id ${id}`);
+        }
+    }
+
+    async updateBoardStatus(id: number, status: BoardStatus): Promise<Board> {
+        const board = await this.getBoardById(id);
+
+        board.status = status
+        await this.boardRepository.save(board);
+
+        return board;
+    }
+
+    async getAllBoards(): Promise<Board[]> {
+        return this.boardRepository.find();
+    }
+
+    ///////////////////////////////////////////////////////////////////////    
+    /**
+    //db를 안 써서 배열 사용.. -> 이제 db쓰니까 Board[]는 사용안함
+    // private boards: Board[] = []; //다른 컴포넌트에서 배열 값 수정할 수 없게.
     //Board 모델 객체를 담을 것
 
 
@@ -83,4 +131,9 @@ export class BoardsService {
     
         return board;
     }
+     */
+
+
+
+    
 }
