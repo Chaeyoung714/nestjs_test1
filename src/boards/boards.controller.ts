@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Delete, Patch, UsePipes, ValidationPipe, ParseIntPipe, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Delete, Patch, UsePipes, ValidationPipe, ParseIntPipe, UseGuards, Logger } from '@nestjs/common';
 import { BoardStatus } from './board-status.enum';
 import { BoardsService } from './boards.service';
 import { CreateBoardDto } from './dto/create-board.dto';
@@ -12,6 +12,7 @@ import { getuid } from 'process';
 @Controller('boards')
 @UseGuards(AuthGuard())
 export class BoardsController {
+    private logger = new Logger('BoardsController'); //log객체 생성
     constructor(private boardsService: BoardsService) {}
 
     @Get('/:id')
@@ -22,10 +23,12 @@ export class BoardsController {
     @Post()
     @UsePipes(ValidationPipe)
     createBoard(
-        @Body() CreateBoardDto: CreateBoardDto,
+        @Body() createBoardDto: CreateBoardDto,
         @GetUser() user: User, //게시물 생성 시 유저도 가져와서 함께 저장할 것.
     ): Promise<Board> {
-        return this.boardsService.createBoard(CreateBoardDto, user);
+        this.logger.verbose(`User ${user.username} creating a new board.
+        Payload: ${JSON.stringify(createBoardDto)}`);
+        return this.boardsService.createBoard(createBoardDto, user);
     }
 
     @Delete('/:id')
@@ -48,6 +51,7 @@ export class BoardsController {
     getAllBoard(
         @GetUser() user: User, //user 별로 게시물 확인하는 로직으로 수정! 
     ): Promise<Board[]> {
+        this.logger.verbose(`User ${user.username} trying to get all boards`); //log
         return this.boardsService.getAllBoards(user);
     }
 

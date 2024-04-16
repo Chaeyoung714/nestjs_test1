@@ -26,7 +26,5 @@ export class AuthController {
     test(@GetUser() user: User) {
         console.log('user', user);
     }
-    // test(@Req() req) {
-    //     console.log('req', req);
-    // }
+
 }
