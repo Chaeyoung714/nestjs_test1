@@ -5,6 +5,9 @@ import { CreateBoardDto } from './dto/create-board.dto';
 import { BoardStatusValidationPipe } from './pipes/board-status-validation.pipe';
 import { Board } from './board.entity';
 import { AuthGuard } from '@nestjs/passport';
+import { GetUser } from 'src/auth/get-user.decorator';
+import { User } from 'src/auth/user.entity';
+import { getuid } from 'process';
 
 @Controller('boards')
 @UseGuards(AuthGuard())
@@ -18,13 +21,19 @@ export class BoardsController {
 
     @Post()
     @UsePipes(ValidationPipe)
-    createBoard(@Body() CreateBoardDto: CreateBoardDto): Promise<Board> {
-        return this.boardsService.createBoard(CreateBoardDto);
+    createBoard(
+        @Body() CreateBoardDto: CreateBoardDto,
+        @GetUser() user: User, //게시물 생성 시 유저도 가져와서 함께 저장할 것.
+    ): Promise<Board> {
+        return this.boardsService.createBoard(CreateBoardDto, user);
     }
 
     @Delete('/:id')
-    deleteBoard(@Param('id', ParseIntPipe) id) {//파라미터레벨로 parseintpipe: 파라미터의 인자가 숫자값인지 확인.
-        return this.boardsService.deleteBoard(id);
+    deleteBoard(
+        @Param('id', ParseIntPipe) id,
+        @GetUser() user: User,
+    ) {//파라미터레벨로 parseintpipe: 파라미터의 인자가 숫자값인지 확인.
+        return this.boardsService.deleteBoard(id, user);
     }
 
     @Patch('/:id/status')
@@ -36,8 +45,10 @@ export class BoardsController {
     }
 
     @Get()
-    getAllBoard(): Promise<Board[]> {
-        return this.boardsService.getAllBoards();
+    getAllBoard(
+        @GetUser() user: User, //user 별로 게시물 확인하는 로직으로 수정! 
+    ): Promise<Board[]> {
+        return this.boardsService.getAllBoards(user);
     }
 
     /*

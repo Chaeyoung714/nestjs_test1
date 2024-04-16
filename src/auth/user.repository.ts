@@ -25,5 +25,5 @@ export class UserRepository extends Repository<User> {
         }
 
         await this.save(user);
-    }
+    }  
 }
